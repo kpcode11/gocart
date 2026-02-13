@@ -1,25 +1,42 @@
-'use client'
+"use client";
 import Banner from "@/components/Banner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { fetchProducts } from "@/lib/features/product/productSlice";
+import { useUser, useAuth } from "@clerk/clerk-react";
+import { fetchCart, uploadCart } from "@/lib/features/cart/cartSlice";
 
 export default function PublicLayout({ children }) {
+  const dispatch = useDispatch();
+  const { user } = useUser();
+  const { getToken } = useAuth();
 
-    const dispatch = useDispatch()
+  const { cartItems } = useSelector((state) => state.cart);
 
-    useEffect(()=>{
-        dispatch(fetchProducts({}))
-    },[])
+  useEffect(() => {
+    dispatch(fetchProducts({}));
+  }, []);
 
-    return (
-        <>
-            <Banner />
-            <Navbar />
-            {children}
-            <Footer />
-        </>
-    );
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchCart({ getToken }));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(uploadCart({ getToken }));
+    }
+  }, [cartItems]);
+
+  return (
+    <>
+      <Banner />
+      <Navbar />
+      {children}
+      <Footer />
+    </>
+  );
 }
